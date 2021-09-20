@@ -1,8 +1,9 @@
+import datetime
 import random
 import string 
 import json 
 from datetime import date
-import datetime
+import time
 #Take 20 sample Contacts
 contacts=[ 'mohith','nag','priya','venkatesh','sriya','neha','chandu','sai','gayatri','Anusha','harish','varshini','vishnavi']
 #loading json file
@@ -17,12 +18,18 @@ def send_file():
     to_send=input()
     today=date.today()
     d4 = today.strftime("%b-%d-%Y")
-    data['container'][d4]['sent'].append(to_send)
-    print("...File sent succesfully...")
-    json.dump(data,f)
-    f.seek(0)        # <--- should reset file position to the beginning.
-    json.dump(data,f,indent=4)
-    f.truncate()
+    try:
+        data['container'][d4]['sent'].append(to_send)
+    except:
+        data['container'][d4]={'sent':[to_send],'received':[]}
+
+    finally:   
+        time.sleep(1)
+        print("...File sent succesfully...")
+        json.dump(data,f)
+        f.seek(0)        # <--- should reset file position to the beginning.
+        json.dump(data,f,indent=4)
+        f.truncate()
 #receiving a file
 def receive_file():
     user1=random.choice(contacts)
@@ -31,23 +38,28 @@ def receive_file():
     received=''.join((random.choice(string.ascii_lowercase) for x in range(8)))+random.choice(types)
     today=date.today()
     d4 = today.strftime("%b-%d-%Y")
-    data['container'][d4]['received'].append(received)
-    print("....File named {} Received...".format(received))
-    json.dump(data,f)
-    f.seek(0)        # <--- should reset file position to the beginning.
-    json.dump(data, f, indent=4)
-    f.truncate()
+    try:
+        data['container'][d4]['received'].append(received)
+    except:
+        data['container'][d4]={ 'sent':[],'received':[received]}
+    finally:
+        time.sleep(1)
+        print("....File named {} Received...".format(received))
+        json.dump(data,f)
+        f.seek(0)        # <--- should reset file position to the beginning.
+        json.dump(data, f, indent=4)
+        f.truncate()
 #display list
 def display():
     print("1.Single date\n2.Rangeof dates \n3.Exit")
     choice=input("Enter Choice:")
     if choice =='1':
-        date1 = datetime.date(int(input("year:")), int(input("month")), int(input("date:")))
+        date1 = datetime.date(int(input("year:")), int(input("month:")), int(input("date:")))
         key=date1.strftime('%b-%d-%Y')
         try:
             print("Sent files on {} are {}".format(key,data['container'][key]['sent']))
             print("received files on {} are {}".format(key,data['container'][key]['received']))
-        except:
+        except :
             print("No files found on given date")
     elif choice=='2':
         sentlist=[]
@@ -62,10 +74,15 @@ def display():
                 receivedlist.append(data['container'][key]['received'])
             except:
                 pass
+                    
+                
                 
             date1 = date1 + day 
-        print("sent files :",sentlist)
-        print("received files:",receivedlist)
+        if sentlist!=[] or  receivedlist!=[]:
+            print("sent files :",sentlist)
+            print("received files:",receivedlist)
+        else:
+            print("!!!!!!!!No files found!!!!!!!!")
         
     else:
         exit(0)
